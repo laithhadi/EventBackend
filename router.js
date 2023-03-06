@@ -1,18 +1,10 @@
 const express = require('express')
-const books = require("./BooksController")
 const router = express.Router()
 
-//GET REQUESTS
-router.get("/books", books.index)
-router.get("/books/:id", books.show)
+const eventsRouter = require('./Routes/EventRoutes')
+const usersRouter = require('./Routes/UserRoutes')
 
-//POST REQUESTS
-router.post("/books/create", books.create)
-
-//UPDATE REQUESTS
-router.put("/books/:id", books.update)
-
-//DELETE REQUESTS
-router.delete("/books/:id", books.delete)
+router.use('/events', eventsRouter)
+router.use('/users', usersRouter)
 
 module.exports = router
