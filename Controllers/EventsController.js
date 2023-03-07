@@ -12,7 +12,7 @@ exports.index = async function (req, res) {
 
 exports.show = async function (req, res) {
     try {
-        const event = await EventModel.findById(req.params.id, req.body);
+        const event = await EventModel.findById(req.params.id);
         return res.send(event);
     } catch (error) {
         //TODO: error handling
@@ -20,47 +20,44 @@ exports.show = async function (req, res) {
     }
 }
 
-//TODO: error handling
 exports.create = async function (req, res) {
-    const request = req.body;
-
-    const eventInstance = new EventModel({
-        name: request.name,
-        description: request.description,
-        location: request.location,
-        venue: request.venue,
-        photoUrl: request.photoUrl,
-        startDate: request.startDate,
-        endDate: request.endDate,
-        price: request.price,
-        rating: request.rating
-    });
-
     try {
-        eventInstance.validate();
-        eventInstance.save();
-    } catch (err) {
-        res.status(500).send({ error: err });
-    }
+        const request = req.body;
 
-    res.send(eventInstance);
+        const eventInstance = new EventModel({
+            name: request.name,
+            description: request.description,
+            location: request.location,
+            venue: request.venue,
+            photoUrl: request.photoUrl,
+            startDate: request.startDate,
+            endDate: request.endDate,
+            price: request.price,
+            rating: request.rating
+        });
+
+        await eventInstance.validate();
+        const updatedEvent = await eventInstance.save();
+        res.send(updatedEvent);
+    } catch (err) {
+        if (err.name === 'ValidationError') {
+            const errors = Object.values(err.errors).map(error => error.message);
+            return res.status(400).send({ errors });
+        } else {
+            //TODO: other error handling
+            res.status(500).send({ error: 'Something went wrong' });
+        }
+    }
 }
 
-exports.update = async function (req, res, next) {
-    if (!req.body.name) {
-        return (next(createError(400, "Name is required.")))
-    }
-
+exports.update = async function (req, res) {
     try {
-        const bookId = req.params.id;
-        const book = await BookModel.findByIdAndUpdate(bookId, req.body, { new: true });
-        if (!book) {
-            return next(createError(404, 'Book not found'));
-        }
-        console.log('Book updated:', book);
-        res.send(book);
+        const event = await EventModel.findByIdAndUpdate(
+            req.params.id, req.body, { runValidators: true, new: true }
+        );
+        res.send(event);
     } catch (error) {
-        console.error(error);
+        //TODO: error handling
         res.status(500).send({ error: 'Something went wrong' });
     }
 }
@@ -77,7 +74,7 @@ exports.deleteAll = async function (req, res) {
 
 exports.delete = async function (req, res) {
     try {
-        const event = await EventModel.findByIdAndDelete(req.params.id, req.body);
+        const event = await EventModel.findByIdAndDelete(req.params.id);
         return res.send(event);
     } catch (error) {
         //TODO: error handling

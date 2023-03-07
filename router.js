@@ -1,10 +1,9 @@
 const express = require('express')
 const router = express.Router()
+const EventRoutes = require('./Routes/EventRoutes')
+const UserRoutes = require('./Routes/UserRoutes')
 
-const eventsRouter = require('./Routes/EventRoutes')
-const usersRouter = require('./Routes/UserRoutes')
-
-router.use('/events', eventsRouter)
-router.use('/users', usersRouter)
+router.use('/events', EventRoutes)
+router.use('/users', UserRoutes)
 
 module.exports = router

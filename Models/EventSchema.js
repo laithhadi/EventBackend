@@ -1,6 +1,12 @@
+const { isAfter, parse } = require('date-fns');
+
 const mongoose = require("mongoose");
 
 const eventSchema = new mongoose.Schema({
+    _id: {
+        type: mongoose.Types.ObjectId,
+        auto: true
+    },
     name: {
         type: String,
         required: [true, "Event name is required"],
@@ -27,30 +33,40 @@ const eventSchema = new mongoose.Schema({
     },
     startDate: {
         type: Date,
-        required: [true, "Event start date is required"]
-        //TODO: validation?
-        // min: function(passedDate) {
-        //     let currentDate = new Date()
-        //     return passedDate >= currentDate
-        // }
+        required: [true, 'Event start date is required'],
+        validate: {
+            validator: function (value) {
+                return isAfter(value, new Date());
+            },
+            message: 'Event start date must be in the future',
+        },
+        set: function (value) {
+            return parse(value, 'dd/MM/yyyy', new Date());
+        },
     },
     endDate: {
         type: Date,
-        required: [true, "Event end date is required"],
-        //TODO: validation?
-        // min: function(passedDate) {
-        //     let currentDate = new Date()
-        //     return passedDate >= currentDate
-        // }
+        required: [true, 'Event end date is required'],
+        validate: {
+            validator: function (value) {
+                return isAfter(value, this.startDate);
+            },
+            message: 'Event end date must be after the start date',
+        },
+        set: function (value) {
+            return parse(value, 'dd/MM/yyyy', new Date());
+        },
     },
     price: {
         type: Number
     },
     rating: {
-        type: Number
+        type: Number,
+        min: 0,
+        max: 5
     }
 });
 
-const eventModel = mongoose.model("event", eventSchema);
+const eventModel = mongoose.model("event", eventSchema, "Events");
 
 module.exports = eventModel;

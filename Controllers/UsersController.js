@@ -1,97 +1,76 @@
-const createError = require('http-errors')
-const googleAPIClient = require("../External APIs/GoogleBooksAPIClient");
-const BookModel = require('../BookModel');
-
-async function getBookName(bookName) {
-    const bookClient = new googleAPIClient();
-    try {
-        const data = await bookClient.fetchBookByName(bookName);
-        return data.items[0];
-    } catch (error) {
-        console.log(error);
-    }
-}
+const UserModel = require('../Models/UserSchema');
 
 exports.index = async function (req, res) {
     try {
-        const books = await BookModel.find({});
-        res.send(books);
+        const users = await UserModel.find({});
+        res.send(users);
     } catch (error) {
+        //TODO: error handling
         res.status(500).send({ error: 'Something went wrong' });
     }
 }
 
-exports.create = async function (req, res, next) {
-    const request = req.body;
-
-    if (!request.name) return (next(createError(400, "Name is required.")))
-    if (!request.author) return (next(createError(400, "Author is required.")))
-
-    if (
-        !request.isRead ||
-        !(request.isRead === "true" || request.isRead === "false")
-    ) {
-        return (next(createError(400, "Read status is required or it needs to be set to true or false")))
-    }
-
-    const bookData = await getBookName(request.name);
-
-    const bookInstance = new BookModel({
-        name: request.name,
-        author: request.author,
-        isRead: request.isRead,
-        publisher: bookData.volumeInfo.publisher,
-        datePublished: bookData.volumeInfo.publishedDate,
-        price: bookData.saleInfo.saleability,
-        rating: bookData.volumeInfo.averageRating
-    });
-
+exports.show = async function (req, res) {
     try {
-        bookInstance.save();
+        const user = await UserModel.findById(req.params.id);
+        return res.send(user);
     } catch (error) {
-        console.log(error);
-    }
-
-    res.send(bookInstance);
-}
-
-exports.show = async function (req, res, next) {
-    const bookId = req.params.id;
-
-    try {
-        const book = await BookModel.findById(bookId, req.body, { new: true });
-        return res.send(book);
-    } catch (error) {
-        return next(createError(500, "Error finding book."));
+        //TODO: error handling
+        res.status(500).send({ error: 'Something went wrong' });
     }
 }
 
-exports.delete = async function (req, res, next) {
-    const bookId = req.params.id;
-
+exports.create = async function (req, res) {
     try {
-        const book = await BookModel.findByIdAndDelete(bookId, req.body, { new: true });
-        return res.send(book);
-    } catch (error) {
-        return next(createError(500, "Error deleting book"));
-    }
-}
+        const request = req.body;
 
-exports.update = async function (req, res, next) {
-    if (!req.body.name) {
-        return (next(createError(400, "Name is required.")))
-    }
+        const userInstance = new UserModel({
+            username: request.username,
+            password: request.password,
+        });
 
-    try {
-        const bookId = req.params.id;
-        const book = await BookModel.findByIdAndUpdate(bookId, req.body, { new: true });
-        if (!book) {
-            return next(createError(404, 'Book not found'));
+        await userInstance.validate();
+        const updatedUser = await userInstance.save();
+        res.send(updatedUser);
+    } catch (err) {
+        if (err.name === 'ValidationError') {
+            const errors = Object.values(err.errors).map(error => error.message);
+            return res.status(400).send({ errors });
+        } else {
+            //TODO: other error handling
+            res.status(500).send({ error: 'Something went wrong' });
         }
-        console.log('Book updated:', book);
-        res.send(book);
+    }
+}
+
+exports.update = async function (req, res) {
+    try {
+        const user = await UserModel.findByIdAndUpdate(
+            req.params.id, req.body, { runValidators: true, new: true }
+        );
+        res.send(user);
     } catch (error) {
-        console.error(error);
+        //TODO: error handling
+        res.status(500).send({ error: 'Something went wrong' });
+    }
+}
+
+exports.deleteAll = async function (req, res) {
+    try {
+        const user = await UserModel.deleteMany({ username: { $ne: process.env.ADMIN_USERNAME } });
+        return res.send(user);
+    } catch (error) {
+        //TODO: error handling
+        res.status(500).send({ error: 'Something went wrong' });
+    }
+}
+
+exports.delete = async function (req, res) {
+    try {
+        const user = await UserModel.findByIdAndDelete(req.params.id);
+        return res.send(user);
+    } catch (error) {
+        //TODO: error handling
         res.status(500).send({ error: 'Something went wrong' });
     }
 }
