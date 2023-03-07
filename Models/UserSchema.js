@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require('bcryptjs')
 
 const userSchema = new mongoose.Schema({
     _id: {
@@ -18,6 +19,16 @@ const userSchema = new mongoose.Schema({
         max: [100, "Password must not exceed more than 40 characters"]
     }
 });
+
+// this hashes the password with a salt (inputs random characters before/after to obscure actual pass) of 10
+userSchema.pre('save', async function(next){
+
+    if(!this.isModified('password')){
+        next()
+    }
+    this.password = await bcrypt.hash(this.password, 10)
+});
+///
 
 const userModel = mongoose.model("user", userSchema, "Users");
 
