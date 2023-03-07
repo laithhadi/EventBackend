@@ -18,8 +18,8 @@ app.use(express.urlencoded({ extended: false }))
 
 // Routes that will ignore the auth header
 const unprotectedRoutes = [
-    '/login',
-    '/register'
+    '/auth/register',
+    '/auth/login'
 ];
 
 // Auth middleware
