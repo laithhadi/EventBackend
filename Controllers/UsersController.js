@@ -50,8 +50,13 @@ exports.update = async function (req, res) {
         );
         res.send(user);
     } catch (error) {
-        //TODO: error handling
-        res.status(500).send({ error: 'Something went wrong' });
+        if (err.name === 'ValidationError') {
+            const errors = Object.values(err.errors).map(error => error.message);
+            return res.status(400).send({ errors });
+        } else {
+            //TODO: other error handling
+            res.status(500).send({ error: 'Something went wrong' });
+        }
     }
 }
 
