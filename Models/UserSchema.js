@@ -10,14 +10,12 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, "Username is required"],
         unique: true,
-        min: 5,
-        max: [40, "Username must not exceed more than 40 characters"]
+        maxLength: [40, "Username must not exceed more than 40 characters"]
     },
     password: {
         type: String,
         required: [true, "Password is required"],
-        min: 10,
-        max: [100, "Password must not exceed more than 40 characters"]
+        maxLength: [100, "Password must not exceed more than 40 characters"]
     },
     isAdmin: {
         type: Boolean,
