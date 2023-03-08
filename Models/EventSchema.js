@@ -1,4 +1,5 @@
 const { isAfter, parse } = require('date-fns');
+const { zonedTimeToUtc } = require('date-fns');
 
 const mongoose = require("mongoose");
 
@@ -41,7 +42,7 @@ const eventSchema = new mongoose.Schema({
             message: 'Event start date must be in the future',
         },
         set: function (value) {
-            return parse(value, 'dd/MM/yyyy', new Date());
+            return zonedTimeToUtc(parse(value, 'dd/MM/yyyy HH:mm', new Date()), 'Europe/London');
         },
     },
     endDate: {
@@ -54,7 +55,7 @@ const eventSchema = new mongoose.Schema({
             message: 'Event end date must be after the start date',
         },
         set: function (value) {
-            return parse(value, 'dd/MM/yyyy', new Date());
+            return zonedTimeToUtc(parse(value, 'dd/MM/yyyy HH:mm', new Date()), 'Europe/London');
         },
     },
     price: {
