@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const bcrypt = require('bcryptjs')
+const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
     _id: {
@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
     username: {
         type: String,
         required: [true, "Username is required"],
+        unique: true,
         min: 5,
         max: [40, "Username must not exceed more than 40 characters"]
     },
@@ -17,18 +18,47 @@ const userSchema = new mongoose.Schema({
         required: [true, "Password is required"],
         min: 10,
         max: [100, "Password must not exceed more than 40 characters"]
+    },
+    isAdmin: {
+        type: Boolean,
+        default: false
+    },
+    token: {
+        type: String,
+        default: "new_user"
     }
 });
 
-// this hashes the password with a salt (inputs random characters before/after to obscure actual pass) of 10
-userSchema.pre('save', async function(next){
-
-    if(!this.isModified('password')){
-        next()
+userSchema.pre('save', async function (next) {
+    try {
+        if (!this.isModified('password')) {
+            return next();
+        }
+        const salt = await bcrypt.genSalt(parseInt(process.env.PASSWORD_SALT_ROUNDS));
+        const hashed = await bcrypt.hash(this.password, salt);
+        this.password = hashed;
+        return next();
+    } catch (err) {
+        return next(err);
     }
-    this.password = await bcrypt.hash(this.password, 10)
 });
-///
+
+userSchema.pre('findOneAndUpdate', async function (next) {
+    try {
+        if (this._update.password) {
+            const salt = await bcrypt.genSalt(parseInt(process.env.PASSWORD_SALT_ROUNDS));
+            const hashed = await bcrypt.hash(this._update.password, salt);
+            this._update.password = hashed;
+        }
+        return next();
+    } catch (err) {
+        return next(err);
+    }
+});
+
+userSchema.method("validatePassword", async function (pass) {
+    return bcrypt.compare(pass, this.password);
+});
 
 const userModel = mongoose.model("user", userSchema, "Users");
 

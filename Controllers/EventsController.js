@@ -3,10 +3,10 @@ const EventModel = require('../Models/EventSchema');
 exports.index = async function (req, res) {
     try {
         const events = await EventModel.find({});
-        res.send(events);
+        return res.send(events);
     } catch (error) {
         //TODO: error handling
-        res.status(500).send({ error: 'Something went wrong' });
+        return res.status(500).send({ error: 'Something went wrong' });
     }
 }
 
@@ -16,7 +16,7 @@ exports.show = async function (req, res) {
         return res.send(event);
     } catch (error) {
         //TODO: error handling
-        res.status(500).send({ error: 'Something went wrong' });
+        return res.status(500).send({ error: 'Something went wrong' });
     }
 }
 
@@ -38,31 +38,31 @@ exports.create = async function (req, res) {
 
         await eventInstance.validate();
         const updatedEvent = await eventInstance.save();
-        res.send(updatedEvent);
+        return res.send(updatedEvent);
     } catch (err) {
         if (err.name === 'ValidationError') {
             const errors = Object.values(err.errors).map(error => error.message);
             return res.status(400).send({ errors });
         } else {
             //TODO: other error handling
-            res.status(500).send({ error: 'Something went wrong' });
+            return res.status(500).send({ error: 'Something went wrong' });
         }
     }
 }
 
 exports.update = async function (req, res) {
     try {
-        const event = await EventModel.findByIdAndUpdate(
+        const event = await EventModel.findOneAndUpdate(
             req.params.id, req.body, { runValidators: true, new: true }
         );
-        res.send(event);
+        return res.send(event);
     } catch (error) {
         if (err.name === 'ValidationError') {
             const errors = Object.values(err.errors).map(error => error.message);
             return res.status(400).send({ errors });
         } else {
             //TODO: other error handling
-            res.status(500).send({ error: 'Something went wrong' });
+            return res.status(500).send({ error: 'Something went wrong' });
         }
     }
 }

@@ -1,29 +1,39 @@
 const UserModel = require('../Models/UserSchema');
+const { generateToken } = require("../Utils/TokenGenerator");
 
 exports.register = async function (req, res) {
     try {
-        const request = req.body;
+        const { username, password } = req.body;
+
+        if (!(username && password)) {
+            return res.status(400).send("Username/Password is required");
+        }
 
         const user = await UserModel.findOne({
-            username: request.username
+            username: username
         }).exec();
 
         if (user) {
-            return res.status(400).send({
+            return res.status(409).send({
                 message: "Error! Username already taken!"
             });
         }
 
         const userInstance = new UserModel({
-            username: request.username,
-            password: request.password,
+            username: username,
+            password: password
         });
+        
+        const token = generateToken(userInstance._id, userInstance.username, userInstance.isAdmin);
+        userInstance.token = token;
 
         await userInstance.validate();
         await userInstance.save();
 
-        return res.status(200).send({
-            message: "Registered successfully!"
+        return res.status(201).send({
+            message: "Registered successfully!",
+            token,
+            expiresIn: 3600
         });
     } catch (err) {
         if (err.name === 'ValidationError') {
@@ -42,11 +52,14 @@ exports.register = async function (req, res) {
 
 exports.login = async function (req, res) {
     try {
-        const request = req.body;
+        const { username, password } = req.body;
+
+        if (!(username && password)) {
+            return res.status(400).send("Username/Password is required");
+        }
 
         const user = await UserModel.findOne({
-            username: request.username,
-            password: request.password
+            username: username
         }).exec();
 
         if (!user) {
@@ -55,18 +68,22 @@ exports.login = async function (req, res) {
             });
         }
 
-        if (user.username === process.env.ADMIN_USERNAME
-            && user.password === process.env.ADMIN_PASSWORD
-        ) {
-            return res.status(200).send({
-                message: "Logged in successfully!",
-                authorization: process.env.ADMIN_AUTH_SECRET
+        const isMatch = await user.validatePassword(password);
+
+        if (!isMatch) {
+            return res.status(400).send({
+                message: "Error! Invalid username or password!"
             });
         }
 
-        return res.status(200).send({
+        const token = generateToken(user._id, user.username, user.isAdmin);
+        user.token = token;
+        await user.save();
+
+        return res.status(201).send({
             message: "Logged in successfully!",
-            authorization: process.env.AUTH_SECRET
+            token: token,
+            expiresIn: 3600
         });
     } catch (err) {
         //TODO: other error handling
