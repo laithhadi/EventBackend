@@ -1,5 +1,6 @@
 const { isAfter, parse } = require('date-fns');
 const { utcToZonedTime } = require('date-fns-tz');
+// import UnsplashAPIClient from '../External APIs/UnsplashAPIClient';
 
 const mongoose = require("mongoose");
 
@@ -71,6 +72,17 @@ const eventSchema = new mongoose.Schema({
         max: 5
     }
 });
+
+// eventSchema.pre('save', async function (next) {
+//     try {
+//         if (!this.isModified('photoUrl')) {
+//             photoUrl = 
+//         }
+//         return next();
+//     } catch (err) {
+//         return next(err);
+//     }
+// });
 
 const eventModel = mongoose.model("event", eventSchema, "Events");
 
