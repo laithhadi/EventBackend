@@ -17,5 +17,6 @@ exports.generateToken = (userId, username, isAdmin) => {
 };
 
 exports.verifyToken = (token) => {
-    return jwt.verify(token, process.env.TOKEN_SECRET);
+    const strippedToken = token.replace('Bearer ', '')
+    return jwt.verify(strippedToken, process.env.TOKEN_SECRET);
 };
