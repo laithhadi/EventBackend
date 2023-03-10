@@ -10,6 +10,17 @@ exports.index = async function (req, res) {
     }
 }
 
+exports.getTopRatedEvents = async function (req, res) {
+    try {
+        const event = await EventModel.find({ rating: 5 });
+        return res.send(event);
+    } catch (error) {
+        console.log(error);
+        //TODO: error handling
+        return res.status(500).send({ error: 'Something went wrong' });
+    }
+}
+
 exports.show = async function (req, res) {
     try {
         const event = await EventModel.findById(req.params.id);

@@ -8,6 +8,7 @@ router.use(isUserAuthenticated);
 
 //GET REQUESTS
 router.get("/",  EventsController.index);
+router.get("/top", EventsController.getTopRatedEvents);
 router.get("/:id", EventsController.show);
 
 //POST REQUESTS
