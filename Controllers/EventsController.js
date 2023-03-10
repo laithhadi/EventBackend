@@ -53,14 +53,15 @@ exports.create = async function (req, res) {
 exports.update = async function (req, res) {
     try {
         const event = await EventModel.findOneAndUpdate(
-            req.params.id, req.body, { runValidators: true, new: true }
+            { _id: req.params.id }, req.body, { runValidators: true, new: true }
         );
         return res.send(event);
-    } catch (error) {
+    } catch (err) {
         if (err.name === 'ValidationError') {
             const errors = Object.values(err.errors).map(error => error.message);
             return res.status(400).send({ errors });
         } else {
+            console.log(err);
             //TODO: other error handling
             return res.status(500).send({ error: 'Something went wrong' });
         }

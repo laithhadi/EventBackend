@@ -35,40 +35,40 @@ const eventSchema = new mongoose.Schema({
     startDate: {
         type: Date,
         required: [true, 'Event start date is required'],
-        validate: {
-            validator: function (value) {
-                return isAfter(value, new Date());
-            },
-            message: 'Event start date must be in the future',
-        },
-        set: function (value) {
-            const gmtDate = parse(value, 'HH:mm dd/MM/yyyy', new Date());
-            const zonedDate = utcToZonedTime(gmtDate, 'Europe/Luxembourg');
-            return zonedDate;
-        }
+        // validate: {
+        //     validator: function (value) {
+        //         return isAfter(value, new Date());
+        //     },
+        //     message: 'Event start date must be in the future',
+        // },
+        // set: function (value) {
+        //     const gmtDate = parse(value, 'dd/MM/yyyy', new Date());
+        //     const zonedDate = utcToZonedTime(gmtDate, 'Europe/Luxembourg');
+        //     return zonedDate;
+        // }
     },
     endDate: {
         type: Date,
         required: [true, 'Event end date is required'],
-        validate: {
-            validator: function (value) {
-                return isAfter(value, this.startDate);
-            },
-            message: 'Event end date must be after the start date',
-        },
-        set: function (value) {
-            const gmtDate = parse(value, 'HH:mm dd/MM/yyyy', new Date());
-            const zonedDate = utcToZonedTime(gmtDate, 'Europe/Luxembourg');
-            return zonedDate;
-        }
+        // validate: {
+        //     validator: function (value) {
+        //         return isAfter(value, this.startDate);
+        //     },
+        //     message: 'Event end date must be after the start date',
+        // },
+        // set: function (value) {
+        //     const gmtDate = parse(value, 'dd/MM/yyyy', new Date());
+        //     const zonedDate = utcToZonedTime(gmtDate, 'Europe/Luxembourg');
+        //     return zonedDate;
+        // }
     },
     price: {
         type: Number
     },
     rating: {
         type: Number,
-        min: 0,
-        max: 5
+        min: [0, "I know you hate this event but it cant be that low"],
+        max: [5, "Surely its not that good, right?"]
     }
 });
 
