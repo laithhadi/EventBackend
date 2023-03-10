@@ -12,7 +12,7 @@ exports.index = async function (req, res) {
 
 exports.getTopRatedEvents = async function (req, res) {
     try {
-        const event = await EventModel.find({ rating: 5 });
+        const event = await EventModel.find({ rating: 5 }).limit(5);
         return res.send(event);
     } catch (error) {
         console.log(error);
